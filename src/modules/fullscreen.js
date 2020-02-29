@@ -14,8 +14,8 @@ class fullscreen {
         $(game.renderer.domElement).click(function () {
             if (!active) {
                 active = true
-                game.renderer.domElement.requestFullscreen()
-                game.renderer.domElement.requestPointerLock()
+                document.body.requestFullscreen()
+                document.body.requestPointerLock()
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
                 game.camera.aspect = window.innerWidth / window.innerHeight
                 game.camera.updateProjectionMatrix()
@@ -23,12 +23,11 @@ class fullscreen {
                 if (eventIn) { eventIn() }
             }
         })
-        $(game.renderer.domElement).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange', function (e) {
+        $(document.body).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange', function (e) {
             var state = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen;
             var event = state ? 'FullscreenOn' : 'FullscreenOff';
             if (event == "FullscreenOff") {
                 active = false
-                game.renderer.domElement.requestFullscreen()
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
                 game.camera.aspect = window.innerWidth / window.innerHeight
                 game.camera.updateProjectionMatrix()

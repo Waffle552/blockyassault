@@ -9,14 +9,13 @@ class mouse {
      * @param {THREE.Mesh} mesh The camera mesh
      * @param {Number} sensitivity The sensitivity that the camera will move at
      */
-    constructor(renderer, mesh, sensitivity) {
+    constructor(mesh, sensitivity) {
         this.sense = sensitivity
         this.mesh = mesh
-        this.renderer = renderer.domElement
         var uDRot = 0
         var yRot = 0
 
-        this.renderer.addEventListener('mousemove', event => {
+        document.addEventListener('mousemove', event => {
             yRot += (event.movementX * this.sense)
             if (uDRot + event.movementY * this.sense < 90 && uDRot + event.movementY * this.sense > -90) {
                 uDRot += (event.movementY * this.sense)

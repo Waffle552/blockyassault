@@ -1,4 +1,5 @@
 const THREE = require('three')
+const Stats = require('stats.js')
 window.THREE = THREE
 import fullscreen from './modules/fullscreen.js'
 import * as main from './main'
@@ -16,6 +17,9 @@ export class engine {
         document.body.appendChild(this.renderer.domElement)
         this.time = new THREE.Clock()
         var game = this
+        this.stats = new Stats()
+        this.stats.showPanel(0)
+        document.body.appendChild( this.stats.dom )
         new fullscreen(this,
             function () {
                 game.gameActive = true
@@ -31,11 +35,15 @@ export class engine {
 
     update() {
         let game = this
+        let stats = this.stats
         function update() {
+
             if (game.gameActive) {
+                stats.begin()
                 game.delta = game.time.getDelta()
                 main.update(game)
                 game.renderer.render(game.scene, game.camera)
+                stats.end()
             }
             requestAnimationFrame(update)
         }
