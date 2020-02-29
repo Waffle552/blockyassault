@@ -1,0 +1,33 @@
+{
+  "name": "blockyassault",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "webpack",
+    "dev": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Waffle552/blockyassault.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Waffle552/blockyassault/issues"
+  },
+  "homepage": "https://github.com/Waffle552/blockyassault#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jquery": "^3.4.1",
+    "lodash": "^4.17.15",
+    "oimo": "^1.0.9",
+    "three": "^0.112.1"
+  },
+  "devDependencies": {
+    "nodemon-webpack-plugin": "^4.2.2",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
