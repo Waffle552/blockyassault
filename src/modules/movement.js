@@ -1,4 +1,5 @@
 const THREE = require('three')
+const CANNON = require('cannon')
 
 var yRotation
 
@@ -37,65 +38,109 @@ class mouse {
 class wasd {
     /**
      * WASD movement for players
-     * @param {THREE.Mesh} mesh The cameras mesh 
+     * @param {*} body The cameras body 
      * @param {Number} speed Units per second
      */
-    constructor(mesh, speed) {
+    constructor(body, speed, jumpPower) {
         this.w = false
         this.a = false
         this.s = false
         this.d = false
-        this.mesh = mesh
-        this.speed = speed
 
-        // W
+        this.body = body
+        this.speed = speed
+        this.jumpPower = jumpPower
+
+        var canJump = false
+        var contactNormal = new CANNON.Vec3(); // Normal in the contact, pointing *out* of whatever the player touched
+        var upAxis = new CANNON.Vec3(0, 1, 0);
+        this.body.addEventListener("collide", function (e) {
+            var contact = e.contact;
+
+            // contact.bi and contact.bj are the colliding bodies, and contact.ni is the collision normal.
+            // We do not yet know which one is which! Let's check.
+            if (contact.bi.id == body.id)  // bi is the player body, flip the contact normal
+                contact.ni.negate(contactNormal);
+            else
+                contactNormal.copy(contact.ni); // bi is something else. Keep the normal as it is
+
+            // If contactNormal.dot(upAxis) is between 0 and 1, we know that the contact normal is somewhat in the up direction.
+            if (contactNormal.dot(upAxis) > 0.5) // Use a "good" threshold value between 0 and 1 here!
+                canJump = true
+        });
+
         document.addEventListener('keydown', event => {
-            if (event.keyCode === 87) {
-                this.w = true
-            }
-            if (event.keyCode === 65) {
-                this.a = true
-            }
-            if (event.keyCode === 83) {
-                this.s = true
-            }
-            if (event.keyCode === 68) {
-                this.d = true
+            switch (event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    this.w = true
+                    break
+
+                case 37: // left
+                case 65: // a
+                    this.a = true
+                    break
+
+                case 40: // down
+                case 83: // s
+                    this.s = true
+                    break
+
+                case 39: // right
+                case 68: // d
+                    this.d = true
+                    break
+
+                case 32: // space
+                    if (canJump === true) {
+                        body.velocity.y = this.jumpPower
+                    }
+                    canJump = false
+                    break
             }
         })
         document.addEventListener('keyup', event => {
-            if (event.keyCode === 87) {
-                this.w = false
-            }
-            if (event.keyCode === 65) {
-                this.a = false
-            }
-            if (event.keyCode === 83) {
-                this.s = false
-            }
-            if (event.keyCode === 68) {
-                this.d = false
+            switch (event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    this.w = false
+                    break
+
+                case 37: // left
+                case 65: // a
+                    this.a = false
+                    break
+
+                case 40: // down
+                case 83: // s
+                    this.s = false
+                    break
+
+                case 39: // right
+                case 68: // d
+                    this.d = false
+                    break
             }
         })
     }
     run(delta) {
-        let mesh = this.mesh
+        let body = this.body
         let speed = this.speed
         if (this.w) {
-            mesh.position.z -= Math.cos(yRotation) * delta * speed
-            mesh.position.x -= Math.sin(yRotation) * delta * speed
+            body.position.z -= Math.cos(yRotation) * delta * speed
+            body.position.x -= Math.sin(yRotation) * delta * speed
         }
         if (this.a) {
-            mesh.position.z -= Math.cos(yRotation+ THREE.Math.degToRad(90)) * delta * speed
-            mesh.position.x -= Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            body.position.z -= Math.cos(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            body.position.x -= Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
         }
         if (this.s) {
-            mesh.position.z += Math.cos(yRotation) * delta * speed
-            mesh.position.x += Math.sin(yRotation) * delta * speed
+            body.position.z += Math.cos(yRotation) * delta * speed
+            body.position.x += Math.sin(yRotation) * delta * speed
         }
         if (this.d) {
-            mesh.position.z += Math.cos(yRotation + THREE.Math.degToRad(90)) * delta * speed
-            mesh.position.x += Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            body.position.z += Math.cos(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            body.position.x += Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
         }
     }
 }
