@@ -126,21 +126,26 @@ class wasd {
     run(delta) {
         let body = this.body
         let speed = this.speed
+        var newVol = new THREE.Vector3()
         if (this.w) {
-            body.position.z -= Math.cos(yRotation) * delta * speed
-            body.position.x -= Math.sin(yRotation) * delta * speed
+            newVol.z -= Math.cos(yRotation) * speed
+            newVol.x -= Math.sin(yRotation)  * speed
         }
         if (this.a) {
-            body.position.z -= Math.cos(yRotation + THREE.Math.degToRad(90)) * delta * speed
-            body.position.x -= Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            newVol.z -= Math.cos(yRotation + THREE.Math.degToRad(90)) * speed
+            newVol.x -= Math.sin(yRotation + THREE.Math.degToRad(90)) * speed
         }
         if (this.s) {
-            body.position.z += Math.cos(yRotation) * delta * speed
-            body.position.x += Math.sin(yRotation) * delta * speed
+            newVol.z += Math.cos(yRotation)  * speed
+            newVol.x += Math.sin(yRotation) * speed
         }
         if (this.d) {
-            body.position.z += Math.cos(yRotation + THREE.Math.degToRad(90)) * delta * speed
-            body.position.x += Math.sin(yRotation + THREE.Math.degToRad(90)) * delta * speed
+            newVol.z += Math.cos(yRotation + THREE.Math.degToRad(90)) * speed
+            newVol.x += Math.sin(yRotation + THREE.Math.degToRad(90)) * speed
+        }
+        if (newVol.x !== 0 && newVol.z !== 0) {
+            newVol.y = this.body.velocity.y
+            this.body.velocity.copy(newVol)
         }
     }
 }

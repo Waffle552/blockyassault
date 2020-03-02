@@ -1,8 +1,10 @@
 const THREE = require('three')
+const CANNON = require('cannon')
 const Stats = require('stats.js')
 window.THREE = THREE
 import fullscreen from './modules/fullscreen.js'
 import * as main from './main'
+import { gameObjectsLoader } from './gameObjects.js'
 
 export class engine {
     constructor() {
@@ -16,6 +18,8 @@ export class engine {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
         document.body.appendChild(this.renderer.domElement)
         this.time = new THREE.Clock()
+        this.phyWorld = new CANNON.World()
+        this.phyWorld.gravity.set(0, -14.6, 0)
         var game = this
         this.stats = new Stats()
         this.stats.showPanel(0)
@@ -29,6 +33,7 @@ export class engine {
                 game.gameActive = false
                 console.log('Fullscreen out')
             })
+        gameObjectsLoader(this)
         main.start(this)
         this.update()
     }
@@ -42,6 +47,8 @@ export class engine {
                 stats.begin()
                 game.delta = game.time.getDelta()
                 main.update(game)
+                game.phyWorld.step(1.0 / 60.0, game.delta, 3)
+                gameObjects.update(game)
                 game.renderer.render(game.scene, game.camera)
                 stats.end()
             }
