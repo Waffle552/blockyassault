@@ -3,18 +3,22 @@ const THREE = require('three')
 export class gameObject {
     /**
      * 
-     * @param {THREE.Quaternion} param1.rotation 
+     * @param {THREE.Quaternion} param1.rotation
+     * @param {Number} shadows 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
      */
-    constructor(gameInstance, {position, rotation, mesh, physics, autoPost = true}){
+    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true }) {
         this.gameInstance = gameInstance
         if (mesh) {
-            if (mesh.full){
+            if (mesh.full) {
                 this.mesh = mesh.full
             } else {
                 this.mesh = new THREE.Mesh(mesh.geometry, mesh.material)
+                if(shadows){
+                    this.meshSetShadows(shadows)
+                }
             }
         }
-        
+
         if (position) {
             this.position = position
             this.meshSetPos(this.position)
@@ -25,15 +29,16 @@ export class gameObject {
         }
         if (physics) {
             this.body = new CANNON.Body(physics)
-            if(this.position){
+            if (this.position) {
                 this.body.position.copy(this.position)
             }
-            if(this.rotation) {
+            if (this.rotation) {
                 this.body.quaternion = this.rotation
             }
-            
+            this.phyOpts = physics
+
         }
-        if(autoPost){
+        if (autoPost) {
             this.post(this.gameInstance)
         }
 
@@ -41,11 +46,11 @@ export class gameObject {
     /**
      * Will post the body to physics world, and will post object to scene
      */
-    post(gameInstance){
-        if(this.mesh){
+    post(gameInstance) {
+        if (this.mesh) {
             gameInstance.scene.add(this.mesh)
         }
-        if(this.body){
+        if (this.body) {
             gameInstance.phyWorld.addBody(this.body)
         }
     }
@@ -68,20 +73,20 @@ export class gameObject {
     meshSetShadows(setting) {
         var mesh = this.mesh
         var settings = [
-            function (){
-                mesh.receiveShadow  = false
+            function () {
+                mesh.receiveShadow = false
                 mesh.castShadow = false
             },
-             function (){
-                mesh.receiveShadow  = false
+            function () {
+                mesh.receiveShadow = false
                 mesh.castShadow = true
             },
-             function (){
-                mesh.receiveShadow  = true
+            function () {
+                mesh.receiveShadow = true
                 mesh.castShadow = false
             },
-             function (){
-                mesh.receiveShadow  = true
+            function () {
+                mesh.receiveShadow = true
                 mesh.castShadow = true
             },
         ]
@@ -89,7 +94,7 @@ export class gameObject {
             settings[setting]()
         }
     }
-    
+
     // Physics methods
 
     lockRotation(bool) {
@@ -99,9 +104,32 @@ export class gameObject {
             this.body.angularDamping = 0
         }
     }
-
-    bodyToMeshUpdate() {
-        this.mesh.position.copy(this.body.position)
-        this.mesh.quaternion.copy(this.body.quaternion)
+    /**
+     * 
+     * @param {Number} peram0.mode 0 = posistion only, 1 = rotation only, 2 posistion and rotation (default)  
+     */
+    bodyToMeshUpdate({mode = 2, posOffset, rotOffset}) {
+        let self = this
+        if (this.mesh && mode < 3 && mode > -1) {
+            let options = [
+                function () {
+                    self.mesh.position.copy(self.body.position)
+                },
+                function () {
+                    self.mesh.quaternion.copy(self.body.quaternion)
+                },
+                function () {
+                    self.mesh.position.copy(self.body.position)
+                    self.mesh.quaternion.copy(self.body.quaternion)
+                }
+            ]
+            options[mode]()
+            if (posOffset) {
+                this.mesh.position.add(posOffset)
+            }
+            if (rotOffset) {
+                this.mesh.rotation.add(rotOffset)
+            }
+        } else throw ('no mesh or option not 0 - 2')
     }
 }

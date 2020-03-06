@@ -19,7 +19,7 @@ export class engine {
         document.body.appendChild(this.renderer.domElement)
         this.time = new THREE.Clock()
         this.phyWorld = new CANNON.World()
-        this.phyWorld.gravity.set(0, -14.6, 0)
+        this.phyWorld.gravity.set(0, -9.83, 0)
         var game = this
         this.stats = new Stats()
         this.stats.showPanel(0)
@@ -48,7 +48,7 @@ export class engine {
                 game.delta = game.time.getDelta()
                 main.update(game)
                 game.phyWorld.step(1.0 / 60.0, game.delta, 3)
-                gameObjects.update(game)
+                game.gameObjects.update(game)
                 game.renderer.render(game.scene, game.camera)
                 stats.end()
             }

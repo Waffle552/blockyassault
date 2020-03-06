@@ -124,7 +124,6 @@ class wasd {
         })
     }
     run(delta) {
-        let body = this.body
         let speed = this.speed
         var newVol = new THREE.Vector3()
         if (this.w) {
