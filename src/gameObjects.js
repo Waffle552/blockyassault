@@ -5,6 +5,9 @@ import { gameObject } from "./modules/gameObject.js"
 var gameObjects
 
 export function gameObjectsLoader(game) {
+    var game = game
+
+    // Add new gameobject here with new gameObject()
     gameObjects = {
         update: update,
         player: new gameObject(game, {
@@ -58,26 +61,35 @@ export function gameObjectsLoader(game) {
         })
     }
 
+    // Modify the gameobject after creation here. Accses them with gameObjects.name of object
+
     gameObjects.player.lockRotation(true)
-
-
     game.gameObjects = gameObjects
-    game.gameObjectRuntime = new updater([
-        game.gameObjects.player.bodyToMeshUpdate({ mode: 0, posOffset: new THREE.Vector3(0, 1.8, 0) }),
-        game.gameObjects.cube.bodyToMeshUpdate({}),
-        game.gameObjects.cube2.bodyToMeshUpdate({}),
-        game.gameObjects.ground.bodyToMeshUpdate({}),
-        game.gameObjects.roof.bodyToMeshUpdate({})
-    ])
+    var gameObjectUpdateInfo = [
+        {gameObject: game.gameObjects.player, options:{ mode: 0, posOffset: new THREE.Vector3(0, 1.8, 0) }},
+        {gameObject: game.gameObjects.cube},
+        {gameObject: game.gameObjects.cube2},
+        {gameObject: game.gameObjects.ground},
+        {gameObject: game.gameObjects.roof}
+    ]
+    game.gameObjectRuntime = new updater(gameObjectUpdateInfo)
 }
 
+
 class updater{
-    constructor(updateFunctions = []) {
-        this.updateFunctions = []
+    constructor(updateInfo = []) {
+        this.updateInfo = updateInfo
+        for(var i = 0; i < this.updateInfo.length; i++){
+            if (!this.updateInfo[i].options){
+                this.updateInfo[i].options = {}
+            }
+        }
     }
     
     update() {
-
+        for(var i = 0; i < this.updateInfo.length; i++){
+            this.updateInfo[i].gameObject.bodyToMeshUpdate(this.updateInfo[i].options)
+        }
     }
     addArray(obj) {
         for(var i = 0; i < obj.length; i++) {
@@ -86,9 +98,10 @@ class updater{
         }
     }
     add(obj) {
-
+        
     }
 }
 function update(game) {
-
+    
+    game.gameObjectRuntime.update()
 }

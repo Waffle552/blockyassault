@@ -47,5 +47,4 @@ export function start(game) {
 }
 export function update(game) {
     wasd.run(game.delta)
-    console.log(wasd)
 }

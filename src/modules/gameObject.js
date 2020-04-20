@@ -113,14 +113,14 @@ export class gameObject {
         if (this.mesh && mode < 3 && mode > -1) {
             let options = [
                 function () {
-                    self.mesh.position.copy(self.body.position)
+                    self.meshSetPos(self.body.position)
                 },
                 function () {
-                    self.mesh.quaternion.copy(self.body.quaternion)
+                    self.meshSetRot(self.body.quaternion)
                 },
                 function () {
-                    self.mesh.position.copy(self.body.position)
-                    self.mesh.quaternion.copy(self.body.quaternion)
+                    self.meshSetPos(self.body.position)
+                    self.meshSetRot(self.body.quaternion)
                 }
             ]
             options[mode]()
