@@ -1,14 +1,14 @@
 const THREE = require('three')
 const CANNON = require('cannon')
 import { movement } from './modules/movement.js'
-import './gejs.js'
+const gejs = require('./gejs.js')
 
 // Declaring Vars for global use
 var mouse, wasd, world
 
 export function start() {
     // Movement
-    mouse = new movement.mouse(engineInst.gameObjects.player.mesh, 0.3)
+    mouse = new movement.mouse(gejs.engineInst.gameObjects.player.mesh, 0.3)
 
     var skybox = new THREE.Mesh(new THREE.BoxBufferGeometry(10000, 10000, 10000), new THREE.MultiMaterial([
         new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("./textures/skybox/right.png"), side: THREE.BackSide }),
@@ -29,11 +29,11 @@ export function start() {
     directionalLight.shadow.mapSize.height = 5120
     directionalLight.shadow.camera = new THREE.OrthographicCamera(-50, 50, 50, -50, 0.5, 1000)
 
-    engineInst.scene.add(directionalLight)
-    engineInst.scene.add(ambientLight)
-    engineInst.scene.add(skybox)
+    gejs.engineInst.scene.add(directionalLight)
+    gejs.engineInst.scene.add(ambientLight)
+    gejs.engineInst.scene.add(skybox)
 
-    wasd = new movement.wasd(engineInst.gameObjects.player.body, 14, 7)
+    wasd = new movement.wasd(gejs.engineInst.gameObjects.player.body, 14, 7)
 
     var projectile = {
         mesh: { geometry: new THREE.SphereBufferGeometry(0.2), material: new THREE.MeshPhongMaterial({ color: 0xC4C4C4 }) },
@@ -44,11 +44,11 @@ export function start() {
             type: CANNON.Body.DYNAMIC
         }
     }
-    var pro1 = new gameObject(engineInst, projectile)
+    var pro1 = new gejs.gameObject(gejs.engineInst, projectile)
     pro1.body.velocity = new CANNON.Vec3(0,0,-30)
 
-    engineInst.gameObjectRuntime.add({gameObject: pro1})
-}
-export function update(engineInst) {
-    wasd.run(engineInst.delta)
+    gejs.engineInst.gameObjectUpdater.add({gameObject: pro1})
+    gejs.engineInst.updateOrderList.push(() => {
+        wasd.run(gejs.engineInst.delta)
+    })
 }

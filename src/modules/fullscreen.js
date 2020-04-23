@@ -17,8 +17,8 @@ class fullscreen {
                 document.body.requestFullscreen()
                 document.body.requestPointerLock()
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
-                game.camera.aspect = window.innerWidth / window.innerHeight
-                game.camera.updateProjectionMatrix()
+                game.mainCamera.aspect = window.innerWidth / window.innerHeight
+                game.mainCamera.updateProjectionMatrix()
                 
                 if (eventIn) { eventIn() }
             }
@@ -29,8 +29,8 @@ class fullscreen {
             if (event == "FullscreenOff") {
                 active = false
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
-                game.camera.aspect = window.innerWidth / window.innerHeight
-                game.camera.updateProjectionMatrix()
+                game.mainCamera.aspect = window.innerWidth / window.innerHeight
+                game.mainCamera.updateProjectionMatrix()
 
                 if (eventOut) { eventOut() }
 

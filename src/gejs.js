@@ -3,7 +3,11 @@ import _ from 'lodash'
 import { engine } from './engine.js'
 import { gameObject, gameObjectUpdater } from './modules/gameObject.js'
 import { gameObjects } from './gameObjects.js'
-import { start } from './main.js'
+import * as main from './main.js'
 
-export var engineInst = new engine()
+var engineInst = new engine()
 gameObjects()
+main.start()
+engineInst.startUpdateLoop()
+
+export {engineInst, gameObject, gameObjectUpdater, main}

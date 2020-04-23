@@ -1,11 +1,11 @@
 const THREE = require('three')
 const CANNON = require('cannon')
-import { gameObject } from "./modules/gameObject.js"
-import './gejs.js' 
+const gejs = require('./gejs.js') 
+
 
 export function gameObjects() {
     var gameObjects = {
-        player: new gameObject(engineInst, {
+        player: new gejs.gameObject(gejs.engineInst, {
             mesh: { full: new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 100000), camera: true },
             position: new THREE.Vector3(0, 0, -6),
             shadows: 3,
@@ -14,7 +14,7 @@ export function gameObjects() {
                 shape: new CANNON.Cylinder(.5, 2, .5, 32)
             }
         }),
-        cube: new gameObject(engineInst, {
+        cube: new gejs.gameObject(gejs.engineInst, {
             mesh: { geometry: new THREE.BoxBufferGeometry(2, 2, 2), material: new THREE.MeshPhongMaterial({ color: "#d12828" }) },
             position: new THREE.Vector3(0, 0, 0),
             shadows: 3,
@@ -24,7 +24,7 @@ export function gameObjects() {
                 type: CANNON.Body.DYNAMIC
             }
         }),
-        cube2: new gameObject(engineInst, {
+        cube2: new gejs.gameObject(gejs.engineInst, {
             mesh: { geometry: new THREE.BoxBufferGeometry(4, 4, 4), material: new THREE.MeshPhongMaterial({ color: "#d12828" }) },
             position: new THREE.Vector3(3, 0, 2),
             shadows: 3,
@@ -34,7 +34,7 @@ export function gameObjects() {
                 type: CANNON.Body.DYNAMIC
             }
         }),
-        ground: new gameObject(engineInst, {
+        ground: new gejs.gameObject(gejs.engineInst, {
             mesh: { geometry: new THREE.BoxBufferGeometry(100, .02, 100), material: new THREE.MeshPhongMaterial({ color: "#ECB712" }) },
             position: new THREE.Vector3(0, -4, 0),
             shadows: 2,
@@ -44,7 +44,7 @@ export function gameObjects() {
                 type: CANNON.Body.KINEMATIC,
             }
         }),
-        roof: new gameObject(engineInst, {
+        roof: new gejs.gameObject(gejs.engineInst, {
             mesh: { geometry: new THREE.BoxBufferGeometry(10, 2, 10), material: new THREE.MeshPhongMaterial({ color: 0x9842f5 }) },
             position: new THREE.Vector3(0, 2, 0),
             shadows: 3,
@@ -59,17 +59,21 @@ export function gameObjects() {
     // Modify the gameobject after creation here. Accses them with gameObjects.name of object
 
     gameObjects.player.lockRotation(true)
+    gejs.engineInst.mainCamera = gameObjects.player.mesh
 
 
     // info for the object to be updated every frame
     var gameObjectUpdateInfo = [
-        { gameObject: engineInst.gameObjects.player, options: { mode: 0, posOffset: new THREE.Vector3(0, 1.8, 0) } },
-        { gameObject: engineInst.gameObjects.cube },
-        { gameObject: engineInst.gameObjects.cube2 },
-        { gameObject: engineInst.gameObjects.ground },
-        { gameObject: engineInst.gameObjects.roof }
+        { gameObject: gameObjects.player, options: { mode: 0, posOffset: new THREE.Vector3(0, 1.8, 0) } },
+        { gameObject: gameObjects.cube },
+        { gameObject: gameObjects.cube2 },
+        { gameObject: gameObjects.ground },
+        { gameObject: gameObjects.roof }
     ]
 
-    engineInst.gameObjects = gameObjects
-    engineInst.gameObjectUpdater.addArray(gameObjectUpdateInfo)
+    gejs.engineInst.gameObjects = gameObjects
+    gejs.engineInst.gameObjectUpdater.addArray(gameObjectUpdateInfo)
+    gejs.engineInst.updateOrderList.push(() => {
+        gejs.engineInst.gameObjectUpdater.update()
+    })
 }

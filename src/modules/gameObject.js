@@ -1,14 +1,19 @@
 const CANNON = require('cannon')
 const THREE = require('three')
+const gejs = require('../gejs.js')
 export class gameObject {
     /**
      * 
      * @param {THREE.Quaternion} param1.rotation
      * @param {Number} shadows 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
      */
-    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true, isCamera = false }) {
+    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true}) {
         this.gameInstance = gameInstance
-        this.isCamera = isCamera
+        if(!mesh.camera){
+            mesh.isCamera = false
+        }else{
+            mesh.isCamera = true
+        }
         if (mesh) {
             if (mesh.full) {
                 this.mesh = mesh.full
