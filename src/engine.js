@@ -4,12 +4,11 @@ const Stats = require('stats.js')
 window.THREE = THREE
 import fullscreen from './modules/fullscreen.js'
 import * as main from './main'
-import { gameObjectsLoader } from './gameObjects.js'
+import { gameObjectUpdater } from './modules/gameObject.js'
 
 export class engine {
     constructor() {
         this.scene = new THREE.Scene()
-        this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 100000)
         this.renderer = new THREE.WebGLRenderer({antialias: true})
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         this.renderer.setClearColor("#e5e5e5")
@@ -33,8 +32,7 @@ export class engine {
                 game.gameActive = false
                 console.log('Fullscreen out')
             })
-        gameObjectsLoader(this)
-        main.start(this)
+        this.gameObjectUpdater = new gameObjectUpdater()
         this.update()
     }
 
@@ -48,7 +46,7 @@ export class engine {
                 game.delta = game.time.getDelta()
                 main.update(game)
                 game.phyWorld.step(1.0 / 60.0, game.delta, 3)
-                game.gameObjects.update(game)
+                
                 game.renderer.render(game.scene, game.camera)
                 stats.end()
             }
@@ -58,5 +56,3 @@ export class engine {
 
     }
 }
-
-new engine()

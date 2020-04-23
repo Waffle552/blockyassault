@@ -1,7 +1,7 @@
 const NodemonPlugin = require('nodemon-webpack-plugin'); // Ding
 
 module.exports = {
-    entry: "./src/index.js",
+    entry: "./src/gejs.js",
     mode: 'development',
     plugins: [
         new NodemonPlugin({

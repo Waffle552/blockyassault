@@ -6,8 +6,9 @@ export class gameObject {
      * @param {THREE.Quaternion} param1.rotation
      * @param {Number} shadows 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
      */
-    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true }) {
+    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true, isCamera = false }) {
         this.gameInstance = gameInstance
+        this.isCamera = isCamera
         if (mesh) {
             if (mesh.full) {
                 this.mesh = mesh.full
@@ -47,7 +48,7 @@ export class gameObject {
      * Will post the body to physics world, and will post object to scene
      */
     post(gameInstance) {
-        if (this.mesh) {
+        if (this.mesh && !this.isCamera) {
             gameInstance.scene.add(this.mesh)
         }
         if (this.body) {
@@ -131,5 +132,32 @@ export class gameObject {
                 this.mesh.rotation.add(rotOffset)
             }
         } else throw ('no mesh or option not 0 - 2')
+    }
+}
+
+export class gameObjectUpdater{
+    constructor() {
+        this.updateInfo = []
+        
+    }
+    
+    update() {
+        for(var i = 0; i < this.updateInfo.length; i++){
+            this.updateInfo[i].gameObject.bodyToMeshUpdate(this.updateInfo[i].options)
+        }
+    }
+    addArray(obj) {
+        for(var i = 0; i < obj.length; i++) {
+            if(!obj[i].options){
+                obj[i].options = {}
+            }
+        }
+        this.updateInfo = this.updateInfo.concat(obj)
+    }
+    add(obj) {
+        if(!obj.options){
+            obj.options = {}
+        }
+        this.updateInfo.push(obj)
     }
 }
