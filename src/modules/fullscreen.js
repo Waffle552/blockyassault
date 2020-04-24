@@ -7,20 +7,20 @@ class fullscreen {
      * @param {Function} eventIn Will run whenever app goes into full screen mode.
      * @param {Function} eventOut Will run whenever app goes out of full screen mode.
      */
-    constructor(game, eventIn, eventOut) {
+    constructor(game, events = {}) {
         //fullscreen mode
         this.active = false
         let active = this.active
         $(game.renderer.domElement).click(function () {
             if (!active) {
                 active = true
-                document.body.requestFullscreen()
-                document.body.requestPointerLock()
+                game.renderer.domElement.requestFullscreen()
+                game.renderer.domElement.requestPointerLock()
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
                 game.mainCamera.aspect = window.innerWidth / window.innerHeight
                 game.mainCamera.updateProjectionMatrix()
-                
-                if (eventIn) { eventIn() }
+                game.gameActive = true
+                if (events.eventIn) { events.eventIn() }
             }
         })
         $(document.body).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange', function (e) {
@@ -31,8 +31,8 @@ class fullscreen {
                 game.renderer.setSize(window.innerWidth, window.innerHeight)
                 game.mainCamera.aspect = window.innerWidth / window.innerHeight
                 game.mainCamera.updateProjectionMatrix()
-
-                if (eventOut) { eventOut() }
+                game.gameActive = false
+                if (events.eventOut) { events.eventOut() }
 
             }
         });

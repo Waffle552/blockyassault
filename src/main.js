@@ -1,3 +1,4 @@
+const $ = require('jquery')
 const THREE = require('three')
 const CANNON = require('cannon')
 import { movement } from './modules/movement.js'
@@ -35,19 +36,29 @@ export function start() {
 
     wasd = new movement.wasd(gejs.engineInst.gameObjects.player.body, 14, 7)
 
-    var projectile = {
+    var projectileInfo = {
         mesh: { geometry: new THREE.SphereBufferGeometry(0.2), material: new THREE.MeshPhongMaterial({ color: 0xC4C4C4 }) },
-        position: new THREE.Vector3(2.5, -1, 5),
         physics: {
             mass: 10000,
             shape: new CANNON.Sphere(0.1),
-            type: CANNON.Body.DYNAMIC
+            type: CANNON.Body.DYNAMIC,
+            collisionFilterGroup: 4,
+            collisionFilterMask: 1 | 4,
         }
     }
-    var pro1 = new gejs.gameObject(gejs.engineInst, projectile)
-    pro1.body.velocity = new CANNON.Vec3(0,0,-30)
 
-    gejs.engineInst.gameObjectUpdater.add({gameObject: pro1})
+    var projectiles = []
+
+    $(document).click(function (){
+        let projectile = new gejs.gameObject(gejs.engineInst, projectileInfo)
+        projectile.body.velocity = new CANNON.Vec3().copy(mouse.forward).mult(20)
+        projectile.body.velocity.y = mouse.cameraTilt / 0.8
+        projectile.body.position = new CANNON.Vec3().copy(gejs.engineInst.gameObjects.player.body.position)
+        projectile.body.position.y += 1.6
+        gejs.engineInst.gameObjectUpdater.add({gameObject: projectile})
+        projectiles.push(projectile)
+    })
+
     gejs.engineInst.updateOrderList.push(() => {
         wasd.run(gejs.engineInst.delta)
     })

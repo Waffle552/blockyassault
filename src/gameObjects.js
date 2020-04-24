@@ -11,7 +11,9 @@ export function gameObjects() {
             shadows: 3,
             physics: {
                 mass: 62,
-                shape: new CANNON.Cylinder(.5, 2, .5, 32)
+                shape: new CANNON.Cylinder(.5, 2, .5, 32),
+                collisionFilterGroup: 2,
+                collisionFilterMask: 1 | 2 | 4,
             }
         }),
         cube: new gejs.gameObject(gejs.engineInst, {
@@ -21,8 +23,10 @@ export function gameObjects() {
             physics: {
                 mass: 689,
                 shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1)),
-                type: CANNON.Body.DYNAMIC
-            }
+                type: CANNON.Body.DYNAMIC,
+                collisionFilterGroup: 1,
+                collisionFilterMask: 1 | 2 | 4,
+            }        
         }),
         cube2: new gejs.gameObject(gejs.engineInst, {
             mesh: { geometry: new THREE.BoxBufferGeometry(4, 4, 4), material: new THREE.MeshPhongMaterial({ color: "#d12828" }) },
@@ -31,17 +35,21 @@ export function gameObjects() {
             physics: {
                 mass: 689 * 4,
                 shape: new CANNON.Box(new CANNON.Vec3(2, 2, 2)),
-                type: CANNON.Body.DYNAMIC
+                type: CANNON.Body.DYNAMIC,
+                collisionFilterGroup: 1,
+                collisionFilterMask: 1 | 2 | 4,         
             }
         }),
         ground: new gejs.gameObject(gejs.engineInst, {
-            mesh: { geometry: new THREE.BoxBufferGeometry(100, .02, 100), material: new THREE.MeshPhongMaterial({ color: "#ECB712" }) },
+            mesh: { geometry: new THREE.BoxBufferGeometry(100, .2, 100), material: new THREE.MeshPhongMaterial({ color: "#ECB712" }) },
             position: new THREE.Vector3(0, -4, 0),
             shadows: 2,
             physics: {
                 mass: 0,
-                shape: new CANNON.Box(new CANNON.Vec3(50, .01, 50)),
+                shape: new CANNON.Box(new CANNON.Vec3(50, .1, 50)),
                 type: CANNON.Body.KINEMATIC,
+                collisionFilterGroup: 1,
+                collisionFilterMask: 1 | 2 | 4,
             }
         }),
         roof: new gejs.gameObject(gejs.engineInst, {
@@ -51,7 +59,9 @@ export function gameObjects() {
             physics: {
                 mass: 0,
                 shape: new CANNON.Box(new CANNON.Vec3(5, 1, 5)),
-                type: CANNON.Body.KINEMATIC
+                type: CANNON.Body.KINEMATIC,
+                collisionFilterGroup: 1,
+                collisionFilterMask: 1 | 2 | 4,
             }
         })
     }

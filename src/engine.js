@@ -23,15 +23,7 @@ export class engine {
         this.stats = new Stats()
         this.stats.showPanel(0)
         document.body.appendChild(this.stats.dom)
-        new fullscreen(this,
-            function () {
-                game.gameActive = true
-                console.log('Fullscreen in')
-            },
-            function () {
-                game.gameActive = false
-                console.log('Fullscreen out')
-            })
+        new fullscreen(this)
         this.gameObjectUpdater = new gejs.gameObjectUpdater()
         this.updateOrderList = []
     }

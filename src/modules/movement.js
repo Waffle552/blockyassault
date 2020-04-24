@@ -1,3 +1,5 @@
+import { Vector3 } from 'three'
+
 const THREE = require('three')
 const CANNON = require('cannon')
 
@@ -15,6 +17,8 @@ class mouse {
         this.mesh = mesh
         var uDRot = 0
         var yRot = 0
+        this.forward = new Vector3(Math.sin(mesh.rotation.y), 0 , Math.cos(mesh.rotation.y))
+        this.cameraTilt = uDRot
 
         document.addEventListener('mousemove', event => {
             yRot += (event.movementX * this.sense)
@@ -30,6 +34,8 @@ class mouse {
             var quaternion = quaternionY.multiply(quaternionUD)
 
             this.mesh.rotation.setFromQuaternion(quaternion)
+            this.forward = new Vector3(Math.sin(THREE.Math.degToRad(yRot)), 0 , -Math.cos(THREE.Math.degToRad(yRot)))
+            this.cameraTilt = -uDRot
             mesh.updateProjectionMatrix()
         })
     }
@@ -50,11 +56,10 @@ class wasd {
         this.body = body
         this.speed = speed
         this.jumpPower = jumpPower
-
-        var canJump = false
+        this.canJump = false
         var contactNormal = new CANNON.Vec3(); // Normal in the contact, pointing *out* of whatever the player touched
         var upAxis = new CANNON.Vec3(0, 1, 0);
-        this.body.addEventListener("collide", function (e) {
+        this.body.addEventListener("collide", (e) => {
             var contact = e.contact;
 
             // contact.bi and contact.bj are the colliding bodies, and contact.ni is the collision normal.
@@ -66,7 +71,7 @@ class wasd {
 
             // If contactNormal.dot(upAxis) is between 0 and 1, we know that the contact normal is somewhat in the up direction.
             if (contactNormal.dot(upAxis) > 0.5) // Use a "good" threshold value between 0 and 1 here!
-                canJump = true
+                this.canJump = true
         });
 
         document.addEventListener('keydown', event => {
@@ -92,10 +97,10 @@ class wasd {
                     break
 
                 case 32: // space
-                    if (canJump === true) {
+                    if (this.canJump === true) {
                         body.velocity.y = this.jumpPower
                     }
-                    canJump = false
+                    this.canJump = false
                     break
             }
         })
@@ -142,10 +147,11 @@ class wasd {
             newVol.z += Math.cos(yRotation + THREE.Math.degToRad(90)) * speed
             newVol.x += Math.sin(yRotation + THREE.Math.degToRad(90)) * speed
         }
-        if (newVol.x !== 0 && newVol.z !== 0) {
+        if (newVol.x !== 0 && newVol.z !== 0 || this.canJump) {
             newVol.y = this.body.velocity.y
             this.body.velocity.copy(newVol)
         }
+        
     }
 }
 
