@@ -1,9 +1,9 @@
 const THREE = require('three')
 const CANNON = require('cannon')
 const Stats = require('stats.js')
-const gejs = require('./gejs.js')
+const gejs = require('../gejs.js')
 window.THREE = THREE
-import fullscreen from './modules/fullscreen.js'
+import fullscreen from '../modules/fullscreen.js'
 
 
 export class engine {
