@@ -22,9 +22,9 @@ export class engine {
         var game = this
         this.stats = new Stats()
         this.stats.showPanel(0)
-        document.body.appendChild(this.stats.dom)
+        this.renderer.domElement.appendChild(this.stats.dom)
         new fullscreen(this)
-        this.gameObjectUpdater = new gejs.gameObjectUpdater()
+        this.GameObjectSynchronizer = new gejs.GameObjectSynchronizer()
         this.updateOrderList = []
     }
 
@@ -40,6 +40,7 @@ export class engine {
                 for (var i = 0; game.updateOrderList.length > i; i++) {
                     game.updateOrderList[i]()
                 }
+                game.GameObjectSynchronizer.sync()
                 game.renderer.render(game.scene, game.mainCamera)
                 game.stats.end()
             }

@@ -9,7 +9,7 @@ var mouse, wasd, world
 
 export function start() {
     // Movement
-    mouse = new movement.mouse(gejs.engineInst.gameObjects.player.mesh, 0.3)
+    mouse = new movement.mouse(gejs.engineInst.gameObjects.player, 0.3)
 
     var skybox = new THREE.Mesh(new THREE.BoxBufferGeometry(10000, 10000, 10000), new THREE.MultiMaterial([
         new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("./textures/skybox/right.png"), side: THREE.BackSide }),
@@ -36,27 +36,46 @@ export function start() {
 
     wasd = new movement.wasd(gejs.engineInst.gameObjects.player.body, 14, 7)
 
-    var projectileInfo = {
-        mesh: { geometry: new THREE.SphereBufferGeometry(0.2), material: new THREE.MeshPhongMaterial({ color: 0xC4C4C4 }) },
-        physics: {
-            mass: 10000,
-            shape: new CANNON.Sphere(0.1),
-            type: CANNON.Body.DYNAMIC,
-            collisionFilterGroup: 4,
-            collisionFilterMask: 1 | 4,
-        }
-    }
+
 
     var projectiles = []
+    var loopNum = 0
+    var velocityMult = 50
 
-    $(document).click(function (){
-        let projectile = new gejs.gameObject(gejs.engineInst, projectileInfo)
-        projectile.body.velocity = new CANNON.Vec3().copy(mouse.forward).mult(20)
-        projectile.body.velocity.y = mouse.cameraTilt / 0.8
-        projectile.body.position = new CANNON.Vec3().copy(gejs.engineInst.gameObjects.player.body.position)
-        projectile.body.position.y += 1.6
-        gejs.engineInst.gameObjectUpdater.add({gameObject: projectile})
-        projectiles.push(projectile)
+    $(document).click(function () {
+        if (projectiles.length > 100) {
+            projectiles[loopNum].transform.position = new THREE.Vector3().copy(gejs.engineInst.gameObjects.player.body.position)
+            projectiles[loopNum].body.position.y += 1.6
+            projectiles[loopNum].body.velocity = new CANNON.Vec3().copy(mouse.forward).mult(velocityMult)
+            projectiles[loopNum].body.velocity.y = mouse.cameraTilt * (velocityMult / 20)
+
+            loopNum ++
+            if (loopNum > projectiles.length - 1){
+                loopNum = 0
+            }
+        } else {
+            projectiles.push(new gejs.GameObject(gejs.engineInst, {
+                mesh: new THREE.Mesh(new THREE.SphereBufferGeometry(1), new THREE.MeshPhongMaterial({ color: 0xC4C4C4 })),
+                syncObj: gejs.engineInst.GameObjectSynchronizer,
+                autoPost: false,
+                transform: new gejs.Transform({ position: new THREE.Vector3().copy(gejs.engineInst.gameObjects.player.body.position) }),
+                shadowMode: 3,
+                physics: new CANNON.Body({
+                    mass: 10000,
+                    shape: new CANNON.Sphere(0.5),
+                    type: CANNON.Body.DYNAMIC,
+                    collisionFilterGroup: 4,
+                    collisionFilterMask: 1 | 4,
+                })
+            }))
+            projectiles[projectiles.length - 1].body.position.y += 1.6
+            projectiles[projectiles.length - 1].body.velocity = new CANNON.Vec3().copy(mouse.forward).mult(velocityMult)
+            projectiles[projectiles.length - 1].body.velocity.y = mouse.cameraTilt * (velocityMult / 20)
+    
+            projectiles[projectiles.length - 1].post()
+        }
+        
+
     })
 
     gejs.engineInst.updateOrderList.push(() => {

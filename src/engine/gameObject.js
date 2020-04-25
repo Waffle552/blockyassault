@@ -1,83 +1,64 @@
+import { engine } from './engine.js'
+
 const CANNON = require('cannon')
 const THREE = require('three')
 const gejs = require('../gejs.js')
-export class gameObject {
+export class GameObject {
     /**
      * 
      * @param {THREE.Quaternion} param1.rotation
      * @param {Number} shadows 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
+     * @param {Transform} transform
      */
-    constructor(gameInstance, { position, rotation, mesh, shadows, physics, autoPost = true}) {
-        this.gameInstance = gameInstance
-        if(!mesh.camera){
-            mesh.isCamera = false
-        }else{
-            mesh.isCamera = true
-        }
-        if (mesh) {
-            if (mesh.full) {
-                this.mesh = mesh.full
-            } else {
-                this.mesh = new THREE.Mesh(mesh.geometry, mesh.material)
-                if(shadows){
-                    this.meshSetShadows(shadows)
-                }
-            }
-        }
+    constructor(parent, { transform = new Transform({}), mesh, shadowMode, physics, syncObj, autoPost = true }) {
+        this.parent = parent
+        this.syncObj = syncObj
 
-        if (position) {
-            this.position = position
-            this.meshSetPos(this.position)
-        }
-        if (rotation) {
-            this.rotation = rotation
-            this.meshSetRot(this.rotation)
+        this.transform = transform
+        if (mesh) {
+            this.mesh = mesh
         }
         if (physics) {
-            this.body = new CANNON.Body(physics)
-            if (this.position) {
-                this.body.position.copy(this.position)
-            }
-            if (this.rotation) {
-                this.body.quaternion = this.rotation
-            }
-            this.phyOpts = physics
-
+            this.body = physics
         }
+        if (shadowMode) {
+            this.shadowMode = shadowMode
+        }
+        this.transform = transform
+        this.transform.initalize(this)
         if (autoPost) {
-            this.post(this.gameInstance)
+            this.post(this.parent)
+
         }
 
     }
     /**
      * Will post the body to physics world, and will post object to scene
      */
-    post(gameInstance) {
+    post() {
         if (this.mesh && !this.isCamera) {
-            gameInstance.scene.add(this.mesh)
+            this.parent.scene.add(this.mesh)
         }
         if (this.body) {
-            gameInstance.phyWorld.addBody(this.body)
+            this.parent.phyWorld.addBody(this.body)
+        }
+        if (this.syncObj) {
+            this.transform.addSyncToSynchronizer(this.syncObj)
         }
     }
-
-    // Mesh methods
-    meshSetPos(vec3) {
+    remove() {
+        if (this.syncObj) {
+            this.syncObj.remove(this)
+        }
         if (this.mesh) {
-            this.mesh.position.copy(vec3)
+            gejs.engineInst.scene.remove(this.mesh)
         }
-    }
-    meshSetRot(quat) {
         if (this.mesh) {
-            this.mesh.quaternion.copy(quat)
+            gejs.engineInst.phyWorld.remove(this.body)
         }
     }
-    /**
-     * 
-     * @param {Number} setting 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows 
-     */
-    meshSetShadows(setting) {
-        var mesh = this.mesh
+    set shadowMode(mode) {
+        let mesh = this.mesh
         var settings = [
             function () {
                 mesh.receiveShadow = false
@@ -96,73 +77,115 @@ export class gameObject {
                 mesh.castShadow = true
             },
         ]
-        if (mesh) {
-            settings[setting]()
+        if (mode) {
+            settings[mode]()
         }
-    }
-
-    // Physics methods
-
-    lockRotation(bool) {
-        if (bool) {
-            this.body.angularDamping = 1
-        } else {
-            this.body.angularDamping = 0
-        }
-    }
-    /**
-     * 
-     * @param {Number} peram0.mode 0 = posistion only, 1 = rotation only, 2 posistion and rotation (default)  
-     */
-    bodyToMeshUpdate({mode = 2, posOffset, rotOffset}) {
-        let self = this
-        if (this.mesh && mode < 3 && mode > -1) {
-            let options = [
-                function () {
-                    self.meshSetPos(self.body.position)
-                },
-                function () {
-                    self.meshSetRot(self.body.quaternion)
-                },
-                function () {
-                    self.meshSetPos(self.body.position)
-                    self.meshSetRot(self.body.quaternion)
-                }
-            ]
-            options[mode]()
-            if (posOffset) {
-                this.mesh.position.add(posOffset)
-            }
-            if (rotOffset) {
-                this.mesh.rotation.add(rotOffset)
-            }
-        } else throw ('no mesh or option not 0 - 2')
     }
 }
 
-export class gameObjectUpdater{
+export class GameObjectSynchronizer {
     constructor() {
-        this.updateInfo = []
-        
+        this.syncList = []
+
     }
-    
-    update() {
-        for(var i = 0; i < this.updateInfo.length; i++){
-            this.updateInfo[i].gameObject.bodyToMeshUpdate(this.updateInfo[i].options)
+
+    sync() {
+        for (var i = 0; i < this.syncList.length; i++) {
+            this.syncList[i].sync()
         }
-    }
-    addArray(obj) {
-        for(var i = 0; i < obj.length; i++) {
-            if(!obj[i].options){
-                obj[i].options = {}
-            }
-        }
-        this.updateInfo = this.updateInfo.concat(obj)
     }
     add(obj) {
-        if(!obj.options){
-            obj.options = {}
+        this.syncList.push(obj)
+    }
+    remove(obj) {
+        this.syncList.splice(this.syncList.findIndex(function (opt) {return opt === obj}), 1)
+    }
+}
+
+export class Transform {
+    constructor({
+        position = new THREE.Vector3(),
+        rotation = new THREE.Quaternion(),
+        positionOffset = new THREE.Vector3(),
+        rotationOffset = new THREE.Vector3(),
+        rotationLock = false,
+        rotationSync = true,
+    }) {
+        this._position = position
+        this._rotation = rotation
+        this.positionOffset = positionOffset
+        this.rotationOffset = rotationOffset
+        this._rotationLock = rotationLock
+        this.rotationSync = rotationSync
+    }
+    /**
+     * @param {THREE.Vector3} pos 
+     */
+    set position(pos) {
+        this._position.copy(pos)
+        if (this.parent.mesh) {
+            this.parent.mesh.position.copy(this.position)
         }
-        this.updateInfo.push(obj)
+        if (this.parent.body) {
+            this.parent.body.position.copy(this.position)
+        }
+    }
+    get position() {
+        return this._position
+    }
+
+    /**
+     * @param {THREE.Quaternion} rot
+     */
+    set rotation(rot) {
+        this._rotation.copy(rot)
+        if (this.parent.mesh) {
+            this.parent.mesh.quaternion.copy(this.rotation)
+        }
+        if (this.parent.body) {
+            this.parent.body.quaternion.copy(this.rotation)
+        }
+    }
+    get rotation() {
+        return this._rotation
+    }
+    /**
+     * 
+     * @param {engine} parent 
+     */
+    initalize(parent) {
+        this.parent = parent
+        this.rotationLock = this._rotationLock
+        this.parent.body.position.copy(this.position)
+        this.parent.body.quaternion.copy(this.rotation)
+        this.sync()
+
+    }
+
+    set rotationLock(bool) {
+        this._rotationLock = bool
+        if (bool == true) {
+            this.parent.body.angularDamping = 1
+        } else if (bool == false) {
+            this.parent.body.angularDamping = 0
+        }
+    }
+    get rotationLock() {
+        return this._rotationLock
+    }
+    addSyncToSynchronizer(syncerObj) {
+        syncerObj.add(this)
+    }
+    sync() {
+
+        this.position.copy(this.parent.body.position)
+        if (this.rotationSync == true) {
+            this.rotation.copy(this.parent.body.quaternion)
+        }
+
+        this.parent.mesh.position.copy(this.position).add(this.positionOffset)
+        if (this.rotationSync == true) {
+            this.parent.mesh.rotation.setFromQuaternion(this.rotation)
+        }
     }
 }

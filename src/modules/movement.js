@@ -12,12 +12,12 @@ class mouse {
      * @param {THREE.Mesh} mesh The camera mesh
      * @param {Number} sensitivity The sensitivity that the camera will move at
      */
-    constructor(mesh, sensitivity) {
+    constructor(gameObj, sensitivity) {
         this.sense = sensitivity
-        this.mesh = mesh
         var uDRot = 0
         var yRot = 0
-        this.forward = new Vector3(Math.sin(mesh.rotation.y), 0 , Math.cos(mesh.rotation.y))
+        var vec = new Vector3().applyQuaternion(gameObj.transform.rotation)
+        this.forward = new Vector3(Math.sin(vec.x), 0 , Math.cos(vec.z))
         this.cameraTilt = uDRot
 
         document.addEventListener('mousemove', event => {
@@ -33,10 +33,10 @@ class mouse {
             quaternionUD.setFromAxisAngle(new THREE.Vector3(-1, 0, 0), THREE.Math.degToRad(uDRot))
             var quaternion = quaternionY.multiply(quaternionUD)
 
-            this.mesh.rotation.setFromQuaternion(quaternion)
+            gameObj.mesh.rotation.setFromQuaternion(quaternion)
             this.forward = new Vector3(Math.sin(THREE.Math.degToRad(yRot)), 0 , -Math.cos(THREE.Math.degToRad(yRot)))
             this.cameraTilt = -uDRot
-            mesh.updateProjectionMatrix()
+            gameObj.mesh.updateProjectionMatrix()
         })
     }
 }
