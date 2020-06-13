@@ -1,46 +1,56 @@
-import { engine } from './engine.js'
-
 const CANNON = require('cannon')
 const THREE = require('three')
-const gejs = require('../gejs.js')
+
 export class GameObject {
     /**
-     * 
-     * @param {THREE.Quaternion} param1.rotation
-     * @param {Number} shadows 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
      * @param {Transform} transform
+     * @param {Object} options
+     * @param {THREE.Mesh} options.mesh The mesh of this object
+     * @param {CANNON.Body} options.body The physics body of this object
+     * @param {Number} options.shadowMode 0 = no shadows, 1 = cast shadows, 2 = receive shadows, 3 = cast and receive shadows
+     * @param {Boolean} options.autopost Will run gameObject.post() as soon as it can
      */
-    constructor(parent, { transform = new Transform({}), mesh, shadowMode, physics, syncObj, autoPost = true }) {
-        this.parent = parent
-        this.syncObj = syncObj
-
+    constructor(transform, options) {
         this.transform = transform
-        if (mesh) {
-            this.mesh = mesh
-        }
-        if (physics) {
-            this.body = physics
-        }
-        if (shadowMode) {
-            this.shadowMode = shadowMode
+        if (options) {
+            if (options.mesh) {
+                this.mesh = options.mesh
+            }
+            if (options.body) {
+                this.body = options.body
+            }
+            if (options.shadowMode) {
+                this.shadowMode = options.shadowMode
+            }
         }
         this.transform = transform
         this.transform.initalize(this)
-        if (autoPost) {
-            this.post(this.parent)
 
+    }
+    set parent(parent) {
+        if (this._parent) {
+            console.error('Can not set GameObject parent after it has been set')
+            return
         }
-
+        this._parent = parent
+        this.post(this.parent)
+    }
+    get parent() {
+        return (this._parent)
     }
     /**
      * Will post the body to physics world, and will post object to scene
      */
     post() {
+        if (!this.parent) {
+            console.error("cannot post GameObject without parent")
+            return
+        }
         if (this.mesh && !this.isCamera) {
             this.parent.scene.add(this.mesh)
         }
         if (this.body) {
-            this.parent.phyWorld.addBody(this.body)
+            this.parent.world.addBody(this.body)
         }
         if (this.syncObj) {
             this.transform.addSyncToSynchronizer(this.syncObj)
@@ -54,7 +64,7 @@ export class GameObject {
             gejs.engineInst.scene.remove(this.mesh)
         }
         if (this.mesh) {
-            gejs.engineInst.phyWorld.remove(this.body)
+            gejs.engineInst.world.remove(this.body)
         }
     }
     set shadowMode(mode) {
@@ -86,19 +96,23 @@ export class GameObject {
 export class GameObjectSynchronizer {
     constructor() {
         this.syncList = []
-
     }
 
-    sync() {
+    sync(){
         for (var i = 0; i < this.syncList.length; i++) {
             this.syncList[i].sync()
         }
     }
+    /**
+     * 
+     * @param {Transform} obj 
+     */
     add(obj) {
+        console.log(obj)
         this.syncList.push(obj)
     }
     remove(obj) {
-        this.syncList.splice(this.syncList.findIndex(function (opt) {return opt === obj}), 1)
+        this.syncList.splice(this.syncList.findIndex(function (opt) { return opt === obj }), 1)
     }
 }
 
@@ -155,9 +169,11 @@ export class Transform {
      */
     initalize(parent) {
         this.parent = parent
-        this.rotationLock = this._rotationLock
-        this.parent.body.position.copy(this.position)
-        this.parent.body.quaternion.copy(this.rotation)
+        if (this.parent.body) {
+            this.rotationLock = this._rotationLock
+            this.parent.body.position.copy(this.position)
+            this.parent.body.quaternion.copy(this.rotation)
+        }
         this.sync()
 
     }
@@ -178,14 +194,18 @@ export class Transform {
     }
     sync() {
 
-        this.position.copy(this.parent.body.position)
-        if (this.rotationSync == true) {
-            this.rotation.copy(this.parent.body.quaternion)
+        if (this.parent.body) {
+            this.position.copy(this.parent.body.position)
+            if (this.rotationSync == true) {
+                this.rotation.copy(this.parent.body.quaternion)
+            }
         }
 
-        this.parent.mesh.position.copy(this.position).add(this.positionOffset)
-        if (this.rotationSync == true) {
-            this.parent.mesh.rotation.setFromQuaternion(this.rotation)
+        if (this.parent.mesh) {
+            this.parent.mesh.position.copy(this.position).add(this.positionOffset)
+            if (this.rotationSync == true) {
+                this.parent.mesh.rotation.setFromQuaternion(this.rotation)
+            }
         }
     }
 }

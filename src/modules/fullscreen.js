@@ -1,6 +1,6 @@
 const $ = require('jquery')
 
-class fullscreen {
+export class fullscreen {
     /**
      * Will put game into fullscreen mode and resize
      * @param {*} game
@@ -16,11 +16,13 @@ class fullscreen {
                 active = true
                 game.renderer.domElement.requestFullscreen()
                 game.renderer.domElement.requestPointerLock()
-                game.renderer.setSize(window.innerWidth, window.innerHeight)
-                game.mainCamera.aspect = window.innerWidth / window.innerHeight
+                console.log(window.innerHeight)
+                game.renderer.setSize(window.screen.width, window.screen.height)
+                game.mainCamera.aspect = window.screen.width / window.screen.height
                 game.mainCamera.updateProjectionMatrix()
                 game.gameActive = true
                 if (events.eventIn) { events.eventIn() }
+                console.log(game)
             }
         })
         $(document.body).bind('webkitfullscreenchange mozfullscreenchange fullscreenchange', function (e) {
@@ -38,5 +40,3 @@ class fullscreen {
         });
     }
 }
-
-export default fullscreen
