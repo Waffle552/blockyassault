@@ -43,7 +43,7 @@ gejs.scene.add(skybox)
 var wasd = new movement.wasd(gejs.gameObjects.player.body, 14, 7)
 
 
-
+// Declairing vars in window space for projectile generation
 var projectiles = []
 var loopNum = 0
 var velocityMult = 50
@@ -80,7 +80,6 @@ $(document).click(function () {
         projectile.body.position.y += 1.6
         projectile.body.velocity = new CANNON.Vec3().copy(mouse.forward).mult(velocityMult)
         projectile.body.velocity.y = mouse.cameraTilt * (velocityMult / 20)
-        projectile.parent = gejs
         gejs.GameObjectSynchronizer.add(projectile.transform)
 
         projectiles.push(projectile)

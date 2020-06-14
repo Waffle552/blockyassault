@@ -77,7 +77,6 @@ export var gameObjects = {
         let objects = Object.values(instance.gameObjects)
         objects.pop()
         for(var i = 0; i < objects.length; i++){
-            objects[i].parent = instance
             instance.GameObjectSynchronizer.add(objects[i].transform)
         }
     }

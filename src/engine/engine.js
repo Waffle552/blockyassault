@@ -22,7 +22,7 @@ export class Engine {
         this.world.gravity.set(0, -9.83, 0)
 
         this.gameActive = false
-        this.GameObjectSynchronizer = new GameObjectSynchronizer()
+        this.GameObjectSynchronizer = new GameObjectSynchronizer(this)
         this.updateOrderList = []
     }
 

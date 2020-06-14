@@ -94,7 +94,8 @@ export class GameObject {
 }
 
 export class GameObjectSynchronizer {
-    constructor() {
+    constructor(parent) {
+        this.parent = parent
         this.syncList = []
     }
 
@@ -108,6 +109,7 @@ export class GameObjectSynchronizer {
      * @param {Transform} obj 
      */
     add(obj) {
+        obj.parent.parent = this.parent
         this.syncList.push(obj)
     }
     remove(obj) {
