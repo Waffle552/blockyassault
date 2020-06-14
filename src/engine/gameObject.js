@@ -108,7 +108,6 @@ export class GameObjectSynchronizer {
      * @param {Transform} obj 
      */
     add(obj) {
-        console.log(obj)
         this.syncList.push(obj)
     }
     remove(obj) {
